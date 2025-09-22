@@ -11,6 +11,8 @@ export const LiveDetectionPage = ({ viewModel, uploadedModel }) => {
     processedVideo,
     isProcessingVideo,
     detectionStopped,
+    videoProcessed,
+    trainingStarted,
     error,
     handleVideoUpload,
     processVideo,
@@ -80,7 +82,7 @@ export const LiveDetectionPage = ({ viewModel, uploadedModel }) => {
                     )}
                   </Button>
                   
-                  {!isProcessingVideo && processedVideo && (
+                  {!isProcessingVideo && trainingStarted && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-semibold text-gray-800 mb-3">Original Video</h4>
@@ -98,13 +100,19 @@ export const LiveDetectionPage = ({ viewModel, uploadedModel }) => {
                       <div>
                         <h4 className="font-semibold text-gray-800 mb-3">Detected Video</h4>
                         <div className="bg-gray-100 rounded-lg p-4">
-                          <video 
-                            controls 
-                            className="w-full rounded-lg"
-                          >
-                            <source src={processedVideo} type="video/mp4"/>
-                            Your browser does not support the video tag.
-                          </video>
+                          {processedVideo ? (
+                            <video 
+                              controls 
+                              className="w-full rounded-lg"
+                            >
+                              <source src={processedVideo} type="video/mp4"/>
+                              Your browser does not support the video tag.
+                            </video>
+                          ) : (
+                            <div className="h-48 flex items-center justify-center text-gray-500">
+                              Processing video for detection results...
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

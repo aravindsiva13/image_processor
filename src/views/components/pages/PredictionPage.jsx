@@ -53,10 +53,10 @@ export const PredictionPage = ({ viewModel }) => {
             {uploadedImage && (
               <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <p className="text-sm text-green-800">
-                  ✅ Image uploaded: <strong>{uploadedImage.name}</strong>
+                  ✅ Image uploaded: <strong>{uploadedImage.name || uploadedImage.file?.name}</strong>
                 </p>
                 <p className="text-xs text-green-600 mt-1">
-                  Size: {(uploadedImage.size / 1024).toFixed(1)} KB
+                  Size: {((uploadedImage.size || uploadedImage.file?.size) / 1024).toFixed(1)} KB
                 </p>
               </div>
             )}
@@ -85,44 +85,30 @@ export const PredictionPage = ({ viewModel }) => {
           </div>
         </div>
         
-        {/* Action Buttons */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="flex gap-4">
-            {canProcessImage && (
-              <Button 
-                variant="primary" 
-                size="lg"
-                onClick={processImage}
-                disabled={isProcessing}
-                className="flex-1"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing Image...
-                  </>
-                ) : (
-                  <>
-                    <Target className="w-5 h-5" />
-                    Process Image
-                  </>
-                )}
-              </Button>
-            )}
-            
-            {(uploadedImage || uploadedModel || processedImage) && (
-              <Button 
-                variant="secondary" 
-                size="lg"
-                onClick={resetState}
-                disabled={isProcessing}
-              >
-                <RefreshCw className="w-5 h-5" />
-                Reset
-              </Button>
-            )}
+        {/* Action Buttons - Updated to match your working UI */}
+        {uploadedImage && uploadedModel && (
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <Button 
+              variant="primary" 
+              size="lg"
+              onClick={processImage}
+              disabled={isProcessing}
+              className="w-full"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Processing Image...
+                </>
+              ) : (
+                <>
+                  <Target className="w-5 h-5" />
+                  Process Image
+                </>
+              )}
+            </Button>
           </div>
-        </div>
+        )}
         
         {/* Validation Messages */}
         {!uploadedModel && uploadedImage && (
@@ -152,7 +138,7 @@ export const PredictionPage = ({ viewModel }) => {
         </div>
       )}
 
-      {/* Results Section */}
+      {/* Results Section - Updated to match your working UI */}
       {processedImage && !isProcessing && uploadedImage && (
         <div className="space-y-4">
           <div className="mb-6">
@@ -164,8 +150,7 @@ export const PredictionPage = ({ viewModel }) => {
             {/* Original Image */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <h4 className="font-medium text-gray-800">📤 Original Image</h4>
-                <p className="text-sm text-gray-600">{uploadedImage.name}</p>
+                <h4 className="font-medium text-gray-800">📤 Uploaded Image</h4>
               </div>
               <div className="p-4">
                 <img 
@@ -189,7 +174,7 @@ export const PredictionPage = ({ viewModel }) => {
                   onClick={() => {
                     const link = document.createElement('a');
                     link.href = processedImage;
-                    link.download = `processed_${uploadedImage.name}`;
+                    link.download = `processed_${uploadedImage.file?.name || 'image'}`;
                     link.click();
                   }}
                 >
@@ -208,8 +193,7 @@ export const PredictionPage = ({ viewModel }) => {
           </div>
           
           <Alert type="success">
-            <strong>Processing Complete!</strong> Image processing completed successfully. 
-            Objects have been detected and annotated on the image.
+            <strong>Processing Complete!</strong> Image processing completed successfully! ✅
           </Alert>
         </div>
       )}

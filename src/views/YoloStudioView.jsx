@@ -7,10 +7,11 @@ import { PredictionPage } from './components/pages/PredictionPage';
 import { LiveDetectionPage } from './components/pages/LiveDetectionPage';
 import { SettingsPage } from './components/pages/SettingsPage';
 import { useYoloStudio } from '../hooks/useYoloStudio';
+import  LoginPage  from './components/pages/loginPage';
 
 export const YoloStudioView = () => {
   const viewModels = useYoloStudio();
-
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const renderContent = () => {
     switch (viewModels.main.selectedPage) {
       case 'Dataset & Labeling':
@@ -32,7 +33,10 @@ export const YoloStudioView = () => {
         return <DatasetPage viewModel={viewModels.dataset} />;
     }
   };
-
+  if (!isLoggedIn) {
+    return(<LoginPage onLoginSuccess={()=> setIsLoggedIn(true)} />)
+  }
+  else{
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -49,4 +53,5 @@ export const YoloStudioView = () => {
       </div>
     </div>
   );
+}
 };

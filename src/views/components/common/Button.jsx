@@ -25,6 +25,7 @@ export const Button = ({
 
   return (
     <button
+      style={{display:'flex', alignItems:'center', justifyContent:'center'}}
       onClick={onClick}
       disabled={disabled}
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${

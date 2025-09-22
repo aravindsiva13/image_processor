@@ -12,6 +12,8 @@ export const usePredictionViewModel = () => {
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
+    if (!file) return;
+    
     if (!FileModel.isValidImage(file)) {
       setError('Please select a valid image file (JPG, JPEG, PNG)');
       return;
@@ -28,6 +30,8 @@ export const usePredictionViewModel = () => {
 
   const handleModelUpload = (event) => {
     const file = event.target.files[0];
+    if (!file) return;
+    
     if (!FileModel.isValidModel(file)) {
       setError('Please select a valid model file (.pt)');
       return;
@@ -44,11 +48,13 @@ export const usePredictionViewModel = () => {
     setError(null);
 
     try {
+      // Upload files first
       const uploadResponse = await apiService.uploadFiles(uploadedImage, uploadedModel);
       if (!uploadResponse.success) {
         throw new Error(uploadResponse.message);
       }
 
+      // Process the image
       const processResponse = await apiService.processImage(
         `uploads/${uploadedModel.name}`,
         `uploads/${uploadedImage.file.name}`
@@ -66,6 +72,14 @@ export const usePredictionViewModel = () => {
     }
   };
 
+  const resetState = () => {
+    setUploadedImage(null);
+    setUploadedModel(null);
+    setProcessedImage(null);
+    setIsProcessing(false);
+    setError(null);
+  };
+
   const canProcessImage = uploadedImage && uploadedModel && !isProcessing;
 
   return {
@@ -77,6 +91,7 @@ export const usePredictionViewModel = () => {
     canProcessImage,
     handleImageUpload,
     handleModelUpload,
-    processImage
+    processImage,
+    resetState
   };
 };
