@@ -27,22 +27,22 @@ class ApiService {
       return new ApiResponse(false, null, error, 'Failed to stop Label Studio');
     }
   }
-  async login(username, password) {
-    try{
-      const form=new FormData();
-      form.append('username',username);
-      form.append('password',password);
-      const response = await fetch("`${this.baseURL}/login`", {
-        method: 'POST',
-        body:form,
+  // async login(username, password) {
+  //   try{
+  //     const form=new FormData();
+  //     form.append('username',username);
+  //     form.append('password',password);
+  //     const response = await fetch("`${this.baseURL}/login`", {
+  //       method: 'POST',
+  //       body:form,
 
-    });
-    const data = await response.json();
-    return new ApiResponse(response.ok, data, null, data.message || '');
-    }catch(error){
-      return new ApiResponse(false, null, error, 'Login failed');
-    }
-  }
+  //   });
+  //   const data = await response.json();
+  //   return new ApiResponse(response.ok, data, null, data.message || '');
+  //   }catch(error){
+  //     return new ApiResponse(false, null, error, 'Login failed');
+  //   }
+  // }
   async uploadFiles(image, model) {
     try {
       const formData = new FormData();

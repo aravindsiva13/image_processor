@@ -1,11 +1,11 @@
 import React from 'react';
-import { Zap } from 'lucide-react';
+import { Zap, StopCircle } from 'lucide-react';
 import { Card } from '../common/Card';
 import { Button } from '../common/Button';
 import { Alert } from '../common/Alert';
 
 export const DatasetPage = ({ viewModel }) => {
-  const { isLabelStudioRunning, isLoading, error, startLabelStudio } = viewModel;
+  const { isLabelStudioRunning, isLoading, error, startLabelStudio, stopLabelStudio } = viewModel;
 
   return (
     <div className="space-y-6">
@@ -22,22 +22,37 @@ export const DatasetPage = ({ viewModel }) => {
         title="🖌️ Label Studio Control Center"
         description="Manage your annotation workspace and dataset labeling environment"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+        <div className="space-y-4">
+          {/* Button Row - Two buttons side by side */}
+          <div className="flex gap-4">
             <Button
               variant="primary"
               size="lg"
               onClick={startLabelStudio}
-              disabled={isLoading}
-              className="w-full"
+              disabled={isLoading || isLabelStudioRunning}
+              className="flex-1"
             >
               <Zap className="w-5 h-5" />
               Launch Label Studio
             </Button>
+            
+            <Button
+              variant="danger"
+              size="lg"
+              onClick={stopLabelStudio}
+              disabled={!isLabelStudioRunning || isLoading}
+              className="flex-1"
+            >
+              <StopCircle className="w-5 h-5" />
+              Stop Label Studio
+            </Button>
+          </div>
 
+          {/* Status Alerts */}
+          <div className="space-y-3">
             {/* Success Alert */}
             {isLabelStudioRunning && (
-              <Alert type="success" className="mt-3">
+              <Alert type="success">
                 <div>
                   <strong>Label Studio is now running!</strong>
                   <br />
@@ -46,7 +61,7 @@ export const DatasetPage = ({ viewModel }) => {
                     href="http://localhost:8080"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline text-blue-600"
+                    className="underline text-blue-600 hover:text-blue-800"
                   >
                     http://localhost:8080
                   </a>
@@ -56,8 +71,18 @@ export const DatasetPage = ({ viewModel }) => {
 
             {/* Error Alert */}
             {error && (
-              <Alert type="error" className="mt-3">
+              <Alert type="error">
                 {error}
+              </Alert>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+              <Alert type="info">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  Processing request...
+                </div>
               </Alert>
             )}
           </div>
