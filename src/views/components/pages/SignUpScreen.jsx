@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Lock, Target } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Target, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useGoogleLogin } from '@react-oauth/google';
-import SignupScreen from './SignUpScreen';
-const LoginPage = ({ onLoginSuccess }) => {
+
+const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [particles, setParticles] = useState([]);
-  const[currentScreen, setCurrentScreen]= useState('login'); // 'login' or 'signup'
 
   // Generate floating particles
   useEffect(() => {
@@ -60,33 +61,50 @@ const LoginPage = ({ onLoginSuccess }) => {
   };
 
   const handleSocialLogin = (provider) => {
-    console.log(`${provider} login clicked`);
+    console.log(`${provider} signup clicked`);
   };
 
   const googleLogin = useGoogleLogin({
     onSuccess: (credentialResponse) => {
-      console.log('Google login successful:', credentialResponse);
-      alert('Google login successful!');
-      onLoginSuccess();
+      console.log('Google signup successful:', credentialResponse);
+      alert('Google signup successful!');
+      onSignupSuccess();
     },
     onError: () => {
-      console.log('Google Login Failed');
-      alert('Google login failed. Please try again.');
+      console.log('Google Signup Failed');
+      alert('Google signup failed. Please try again.');
     }
   });
 
-  const handleUserLogin = async () => {
-    if (!formData.email || !formData.password) {
-      alert('Please enter both email and password.');
+  const handleUserSignup = async () => {
+    // Validation
+    if (!formData.email || !formData.password || !formData.confirmPassword) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      alert('Password must be at least 6 characters long.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      alert('Please enter a valid email address.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      console.log('Attempting login...');
+      console.log('Attempting signup...');
       
-      const res = await axios.post('http://localhost:5000/login', {
+      const res = await axios.post('http://localhost:5000/signup', {
         email: formData.email,
         password: formData.password
       }, {
@@ -97,24 +115,26 @@ const LoginPage = ({ onLoginSuccess }) => {
 
       console.log('Response:', res.data);
 
-      if (res.status === 200) {
-        alert('Login successful!');
-        onLoginSuccess();
+      if (res.status === 200 && res.data.status === 'success') {
+        alert('Account created successfully!');
+        onSignupSuccess();
       } else {
-        alert(res.data.message || 'Login failed. Please try again.');
+        alert(res.data.message || 'Signup failed. Please try again.');
       }
 
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Signup error:', error);
       
       if (error.response) {
         const status = error.response.status;
-        const message = error.response.data?.message || 'Login failed';
+        const message = error.response.data?.error || 'Signup failed';
         
-        if (status === 401) {
-          alert('Invalid email or password. Please check your credentials.');
+        if (status === 400) {
+          alert('Invalid input. Please check your information.');
+        } else if (status === 409) {
+          alert('An account with this email already exists.');
         } else {
-          alert(`Login failed: ${message}`);
+          alert(`Signup failed: ${message}`);
         }
       } else {
         alert('Unable to connect to server. Please check if the server is running.');
@@ -155,18 +175,19 @@ const LoginPage = ({ onLoginSuccess }) => {
 
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <FloatingLoginCard 
+        <SignupCard 
           formData={formData}
           showPassword={showPassword}
+          showConfirmPassword={showConfirmPassword}
           isLoading={isLoading}
           handleInputChange={handleInputChange}
-          handleUserLogin={handleUserLogin}
+          handleUserSignup={handleUserSignup}
           handleSocialLogin={handleSocialLogin}
           setShowPassword={setShowPassword}
-          onLoginSuccess={onLoginSuccess}
+          setShowConfirmPassword={setShowConfirmPassword}
+          onSignupSuccess={onSignupSuccess}
+          onSwitchToLogin={onSwitchToLogin}
           googleLogin={googleLogin}
-          currentScreen={currentScreen}
-          setCurrentScreen={setCurrentScreen}
         />
       </div>
 
@@ -183,19 +204,20 @@ const LoginPage = ({ onLoginSuccess }) => {
   );
 };
 
-// Floating Login Card Component
-const FloatingLoginCard = ({ 
+// Signup Card Component
+const SignupCard = ({ 
   formData, 
   showPassword, 
+  showConfirmPassword,
   isLoading, 
   handleInputChange, 
-  handleUserLogin, 
+  handleUserSignup, 
   handleSocialLogin,
   setShowPassword,
-  onLoginSuccess,
-  googleLogin,
-  currentScreen,
-  setCurrentScreen
+  setShowConfirmPassword,
+  onSignupSuccess,
+  onSwitchToLogin,
+  googleLogin
 }) => {
   return (
     <div className="w-full max-w-md">
@@ -207,10 +229,10 @@ const FloatingLoginCard = ({
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
           YOLO Vision Studio
         </h1>
-        <p className="text-gray-400">Access your neural interface</p>
+        <p className="text-gray-400">Join the neural interface</p>
       </div>
 
-      {/* Login Card */}
+      {/* Signup Card */}
       <div className="bg-gray-900/40 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 shadow-2xl shadow-cyan-500/10">
         <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
           {/* Email Field */}
@@ -262,28 +284,54 @@ const FloatingLoginCard = ({
             </div>
           </div>
 
-          {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between text-sm">
+          {/* Confirm Password Field */}
+          <div className="relative group">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-cyan-400 transition-colors duration-300" />
+              <input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="w-full pl-10 pr-12 py-3 bg-gray-800/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all duration-300 hover:border-gray-500"
+                placeholder="Confirm your password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-cyan-400 transition-colors duration-300"
+              >
+                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-cyan-400/0 via-cyan-400/0 to-cyan-400/0 group-focus-within:from-cyan-400/20 group-focus-within:via-purple-400/20 group-focus-within:to-pink-400/20 transition-all duration-500 -z-10"></div>
+            </div>
+          </div>
+
+          {/* Terms and Conditions */}
+          <div className="flex items-center text-sm">
             <label className="flex items-center text-gray-300 hover:text-white transition-colors duration-300 cursor-pointer">
               <input
                 type="checkbox"
                 className="sr-only"
+                required
               />
               <div className="relative">
                 <div className="w-4 h-4 bg-gray-700 border border-gray-600 rounded"></div>
                 <div className="absolute inset-0 w-4 h-4 bg-gradient-to-r from-cyan-400 to-purple-400 rounded opacity-0 peer-checked:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <span className="ml-2">Remember me</span>
+              <span className="ml-2">I agree to the <a href="#" className="text-cyan-400 hover:text-cyan-300">Terms & Conditions</a></span>
             </label>
-            <a href="#" className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300">
-              Forgot password?
-            </a>
           </div>
 
           {/* Submit Button */}
           <button
             type="button"
-            onClick={handleUserLogin}
+            onClick={handleUserSignup}
             disabled={isLoading}
             className="w-full relative overflow-hidden bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
@@ -291,10 +339,10 @@ const FloatingLoginCard = ({
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Authenticating...
+                  Creating Account...
                 </>
               ) : (
-                'Access System'
+                'Create Account'
               )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -336,29 +384,19 @@ const FloatingLoginCard = ({
           </button>
         </div>
 
+        {/* Login Link */}
         <p className="text-center text-gray-400 mt-6">
-  Don't have an account?{' '}
-  <button
-    onClick={() => setCurrentScreen('signup')}
-    className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-medium"
-  >
-    Create one now
-  </button>
-</p>
-
-{currentScreen === 'signup' && (
-  <SignupScreen
-    onSignupSuccess={() => {
-      // After signup, go back to login or dashboard
-      setCurrentScreen('login');
-    }}
-    onSwitchToLogin={() => setCurrentScreen('login')}
-  />
-)}
-
+          Already have an account?{' '}
+          <button
+            onClick={onSwitchToLogin}
+            className="text-cyan-400 hover:text-cyan-300 transition-colors duration-300 font-medium"
+          >
+            Sign in here
+          </button>
+        </p>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default SignupScreen;
